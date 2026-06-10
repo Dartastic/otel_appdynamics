@@ -1,6 +1,6 @@
 name: otel_appdynamics
 description: OpenTelemetry bridge for AppDynamics Mobile / Browser SDK events.
-version: 0.1.0-beta.3-wip
+version: 0.1.0-beta.3
 repository: https://github.com/dartastic/otel_appdynamics
 homepage: https://dartastic.io
 publish_to: https://pub.dartastic.io
