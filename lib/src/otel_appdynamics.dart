@@ -1,7 +1,7 @@
-// Licensed under the Dartastic Pro Software License Agreement.
+// Licensed under the Apache License, Version 2.0
 // Copyright 2025-2026 Mindful Software LLC d/b/a Dartastic.io, All rights reserved.
 
-import 'package:dartastic_opentelemetry/dartastic_opentelemetry.dart';
+import 'package:dartastic_opentelemetry_api/dartastic_opentelemetry_api.dart';
 
 import 'otel_appdynamics_suppression.dart';
 
@@ -11,22 +11,22 @@ const _loggerName = 'package.appdynamics';
 /// reportError, identify) into OpenTelemetry log records.
 class OTelAppdynamics {
   OTelAppdynamics({
-    LoggerProvider? loggerProvider,
+    APILoggerProvider? loggerProvider,
     this.applicationKey,
     this.forwardCustomEvent,
     this.forwardSetUser,
     this.forwardReportError,
   }) : _loggerProvider = loggerProvider;
 
-  final LoggerProvider? _loggerProvider;
+  final APILoggerProvider? _loggerProvider;
   final String? applicationKey;
   final void Function(String name, Map<String, Object?>? props)?
       forwardCustomEvent;
   final void Function(String userData)? forwardSetUser;
   final void Function(String message)? forwardReportError;
 
-  OTelLogger _logger() =>
-      (_loggerProvider ?? OTel.loggerProvider()).getLogger(_loggerName);
+  APILogger _logger() =>
+      (_loggerProvider ?? OTelAPI.loggerProvider()).getLogger(_loggerName);
 
   void customEvent(String name, {Map<String, Object?>? properties}) {
     forwardCustomEvent?.call(name, properties);
@@ -35,7 +35,7 @@ class OTelAppdynamics {
       body: 'appdynamics.event $name',
       eventType: 'custom_event',
       severity: Severity.INFO,
-      attrs: [OTel.attributeString('appdynamics.event.name', name)],
+      attrs: [OTelAPI.attributeString('appdynamics.event.name', name)],
       flatPrefix: 'appdynamics.property.',
       payload: properties,
     );
@@ -49,8 +49,8 @@ class OTelAppdynamics {
       eventType: 'set_user',
       severity: Severity.INFO,
       attrs: [
-        OTel.attributeString('appdynamics.user.data', userData),
-        OTel.attributeString(User.userId.key, userData),
+        OTelAPI.attributeString('appdynamics.user.data', userData),
+        OTelAPI.attributeString(User.userId.key, userData),
       ],
     );
   }
@@ -62,7 +62,7 @@ class OTelAppdynamics {
       body: 'appdynamics.error $message',
       eventType: 'error',
       severity: Severity.ERROR,
-      attrs: [OTel.attributeString('appdynamics.error.message', message)],
+      attrs: [OTelAPI.attributeString('appdynamics.error.message', message)],
     );
   }
 
@@ -75,9 +75,9 @@ class OTelAppdynamics {
     Map<String, Object?>? payload,
   }) {
     final all = <Attribute<Object>>[
-      OTel.attributeString('appdynamics.event.type', eventType),
+      OTelAPI.attributeString('appdynamics.event.type', eventType),
       if (applicationKey != null)
-        OTel.attributeString('appdynamics.application.key', applicationKey!),
+        OTelAPI.attributeString('appdynamics.application.key', applicationKey!),
       ...attrs,
     ];
     if (payload != null && flatPrefix != null) {
@@ -85,15 +85,15 @@ class OTelAppdynamics {
         if (v == null) return;
         final key = '$flatPrefix$k';
         if (v is String) {
-          all.add(OTel.attributeString(key, v));
+          all.add(OTelAPI.attributeString(key, v));
         } else if (v is int) {
-          all.add(OTel.attributeInt(key, v));
+          all.add(OTelAPI.attributeInt(key, v));
         } else if (v is double) {
-          all.add(OTel.attributeDouble(key, v));
+          all.add(OTelAPI.attributeDouble(key, v));
         } else if (v is bool) {
-          all.add(OTel.attributeBool(key, v));
+          all.add(OTelAPI.attributeBool(key, v));
         } else {
-          all.add(OTel.attributeString(key, v.toString()));
+          all.add(OTelAPI.attributeString(key, v.toString()));
         }
       });
     }
@@ -101,7 +101,7 @@ class OTelAppdynamics {
       severityNumber: severity,
       severityText: severity == Severity.ERROR ? 'error' : 'info',
       body: body,
-      attributes: OTel.attributes(all),
+      attributes: OTelAPI.attributes(all),
     );
   }
 }
